@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Ajouter un invité</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-purple-900 text-white min-h-screen p-6 font-sans">
+    <h1 class="text-2xl mb-6 font-bold">Ajouter un invité</h1>
+
+    <button id="openInviteModal" class="bg-green-500 hover:bg-green-600 px-5 py-3 rounded text-sm font-semibold mb-6">+ Ajouter un invité</button>
+
+  <div id="inviteModal" class="fixed inset-0 hidden items-center justify-center bg-black/70 z-50 p-4">
+    <div class="w-full max-w-xl bg-white rounded-2xl p-6 shadow-2xl text-slate-900">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-bold">Ajouter un invité</h2>
+          <p class="text-sm text-slate-500">Remplissez les informations et envoyez la confirmation WhatsApp</p>
+        </div>
+        <button id="cancelInviteModal" class="text-slate-500 hover:text-slate-900">Annuler</button>
+      </div>
+      <form id="inviteForm" class="space-y-4">
+        <input type="text" name="nom" placeholder="Nom complet" required class="w-full p-3 rounded-xl border border-slate-200">
+        <input type="email" name="email" placeholder="Email" required class="w-full p-3 rounded-xl border border-slate-200">
+        <input type="text" name="telephone" placeholder="Téléphone" required class="w-full p-3 rounded-xl border border-slate-200">
+        <select id="eventSelectForm" name="event_id" class="w-full p-3 rounded-xl border border-slate-200 text-slate-700">
+          <option value="">-- Aucun événement --</option>
+        </select>
+        <div class="flex items-center justify-between gap-3">
+          <button type="submit" class="bg-purple-900 text-white px-5 py-3 rounded-xl hover:bg-purple-800">Enregistrer</button>
+          <a href="dashboardHotesse.html" class="text-sm text-slate-600 underline hover:text-slate-900">← Retour</a>
+        </div>
+      </form>
+      <div id="message" class="text-sm mt-4"></div>
+    </div>
+  </div>
+
+  <script src="../../../Backend/js/add_invite.js"></script>
+</body>
+</html>

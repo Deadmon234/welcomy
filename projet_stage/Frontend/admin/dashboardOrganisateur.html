@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WELCOMY - Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-purple-900 text-white min-h-screen p-4 font-sans">
+
+  <header class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/management.png" class="w-8 h-8" alt="logo">
+      <div>
+        <h1 class="text-2xl font-bold">WELCOMY - Admin</h1>
+        <p class="text-gray-300">Gestion des invités, présences et export</p>
+      </div>
+    </div>
+    <div class="flex-1 flex justify-center">
+      <div class="flex flex-col sm:flex-row items-center gap-3">
+        <button id="openInviteModal" class="bg-green-500 hover:bg-green-600 px-5 py-2 rounded text-sm font-semibold text-white text-center">
+          + Ajouter un invité
+        </button>
+        <button id="openCreateEvent" class="bg-yellow-500 hover:bg-yellow-600 px-5 py-2 rounded text-sm font-semibold text-white text-center">+ Créer événement</button>
+      </div>
+    </div>
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <a href="liste_hotesse.html" class="bg-blue-500 hover:bg-blue-600 px-5 py-2 rounded text-sm font-semibold text-white text-center">
+        Liste des hôtesses
+      </a>
+      <a href="verification_evenement.html" class="bg-indigo-500 hover:bg-indigo-600 px-5 py-2 rounded text-sm font-semibold text-white text-center">
+        Vérifier présence
+      </a>
+      <form action="../logout.php" method="POST">
+        <button type="submit" class="bg-red-500 hover:bg-red-600 px-5 py-2 rounded text-sm font-semibold">
+          Logout
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <div id="createEventModal" class="fixed inset-0 hidden flex items-center justify-center bg-black/70 z-50 p-4 overflow-auto">
+    <div class="w-full max-w-2xl bg-white rounded-2xl p-6 shadow-2xl text-slate-900 mx-auto">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-xl font-bold">Créer un événement</h3>
+          <p class="text-sm text-slate-500">Remplissez les informations pour créer l'événement.</p>
+        </div>
+        <button id="cancelCreateEvent" class="text-slate-500 hover:text-slate-900">Annuler</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <input id="eventTitle" placeholder="Titre" class="p-3 rounded-xl border border-slate-200" />
+        <input id="eventDate" type="datetime-local" class="p-3 rounded-xl border border-slate-200" />
+        <input id="eventLocation" placeholder="Lieu" class="p-3 rounded-xl border border-slate-200" />
+      </div>
+      <div class="mt-4">
+        <textarea id="eventDescription" placeholder="Description (optionnel)" rows="3" class="w-full p-3 rounded-xl border border-slate-200"></textarea>
+      </div>
+      <div class="mt-5 text-right">
+        <button id="createEventBtn" class="bg-purple-900 text-white px-5 py-3 rounded-xl hover:bg-purple-800">Créer l'événement</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="inviteModal" class="fixed inset-0 hidden flex items-center justify-center bg-black/70 z-50 p-4 overflow-auto">
+    <div class="w-full max-w-2xl bg-white rounded-2xl p-6 shadow-2xl text-slate-900 mx-auto">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-xl font-bold">Ajouter un invité</h3>
+          <p class="text-sm text-slate-500">Remplissez les informations pour ajouter un invité à un événement.</p>
+        </div>
+        <button id="cancelInviteModal" class="text-slate-500 hover:text-slate-900">Annuler</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <input id="inviteName" placeholder="Nom complet" class="p-3 rounded-xl border border-slate-200" />
+        <!-- <input id="inviteEmail" type="email" placeholder="Email (optionnel)" class="p-3 rounded-xl border border-slate-200" /> -->
+        <input id="inviteTelephone" placeholder="Téléphone" class="p-3 rounded-xl border border-slate-200" />
+        <select id="inviteEventSelect" class="p-3 rounded-xl border border-slate-200 bg-white text-slate-900">
+          <option value="">-- Choisir un événement --</option>
+        </select>
+      </div>
+      <div class="text-right">
+        <button id="submitInviteBtn" class="bg-green-600 text-white px-5 py-3 rounded-xl hover:bg-green-700">Enregistrer l'invité</button>
+      </div>
+      <div id="inviteMessage" class="text-sm mt-4"></div>
+    </div>
+  </div>
+
+  <div class="mb-6">
+    <label class="block text-gray-300 mb-2">Événement actif :</label>
+    <select id="eventSelect" class="w-full p-3 rounded bg-purple-800 text-white"></select>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-purple-800 p-5 rounded-xl shadow-lg">
+      <h2 class="text-sm uppercase text-gray-400 mb-2">Invités totaux</h2>
+      <p id="guestCount" class="text-4xl font-bold">0</p>
+    </div>
+    <div class="bg-purple-800 p-5 rounded-xl shadow-lg">
+      <h2 class="text-sm uppercase text-gray-400 mb-2">Présents</h2>
+      <p id="presentCount" class="text-4xl font-bold">0</p>
+    </div>
+    <div class="bg-purple-800 p-5 rounded-xl shadow-lg">
+      <h2 class="text-sm uppercase text-gray-400 mb-2">Absent</h2>
+      <p id="absentCount" class="text-4xl font-bold">0</p>
+    </div>
+  </div>
+
+  <div class="mb-6">
+    <input id="search" type="text" placeholder="Search guest by name..." class="w-full p-3 rounded bg-purple-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 transition" />
+  </div>
+
+  <div class="bg-purple-800 rounded-xl shadow-lg overflow-hidden">
+    <table class="w-full table-auto">
+      <thead class="bg-purple-700 text-left hidden md:table-header-group">
+        <tr>
+          <th class="p-4 text-white text-lg">Guest</th>
+          <th class="p-4 text-center text-white text-lg">Email</th>
+          <th class="p-4 text-center text-white text-lg">Téléphone</th>
+          <th class="p-4 text-center text-white text-lg">Statut</th>
+          <th class="p-4 text-center text-white text-lg">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="guestList">
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-4 flex flex-col sm:flex-row gap-3">
+    <button id="exportCsv" class="bg-blue-500 hover:bg-blue-600 px-5 py-3 rounded font-semibold text-white">Exporter CSV</button>
+    <button id="refreshList" class="bg-indigo-500 hover:bg-indigo-600 px-5 py-3 rounded font-semibold text-white">Actualiser</button>
+  </div>
+
+  <script>
+    const baseUrl = '../../../Backend/controllers';
+    const searchInput = document.getElementById('search');
+    const guestList = document.getElementById('guestList');
+    const guestCount = document.getElementById('guestCount');
+    const presentCount = document.getElementById('presentCount');
+    const absentCount = document.getElementById('absentCount');
+    const exportCsv = document.getElementById('exportCsv');
+    const refreshList = document.getElementById('refreshList');
+    const eventSelect = document.getElementById('eventSelect');
+    const inviteEventSelect = document.getElementById('inviteEventSelect');
+    const inviteModal = document.getElementById('inviteModal');
+    const openInviteModal = document.getElementById('openInviteModal');
+    const cancelInviteModal = document.getElementById('cancelInviteModal');
+    const submitInviteBtn = document.getElementById('submitInviteBtn');
+    const inviteName = document.getElementById('inviteName');
+    const inviteTelephone = document.getElementById('inviteTelephone');
+    const inviteMessage = document.getElementById('inviteMessage');
+    const createEventModal = document.getElementById('createEventModal');
+    const openCreateEvent = document.getElementById('openCreateEvent');
+    const createEventBtn = document.getElementById('createEventBtn');
+    const cancelCreateEvent = document.getElementById('cancelCreateEvent');
+    const eventTitle = document.getElementById('eventTitle');
+    const eventDate = document.getElementById('eventDate');
+    const eventLocation = document.getElementById('eventLocation');
+    const eventDescription = document.getElementById('eventDescription');
+
+    let guests = [];
+
+    async function loadGuests(eventId = null) {
+      try {
+        const url = `${baseUrl}/get_invitesController.php` + (eventId ? `?event_id=${eventId}` : '');
+        const response = await fetch(url);
+        const data = await response.json();
+        guests = Array.isArray(data) ? data : [];
+        renderGuests(guests);
+        updateStats(guests);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des invités :', error);
+      }
+    }
+
+    async function loadEvents() {
+      try {
+        const resp = await fetch(`${baseUrl}/get_eventsController.php`);
+        const data = await resp.json();
+        eventSelect.innerHTML = '';
+        inviteEventSelect.innerHTML = '<option value="">-- Choisir un événement --</option>';
+        const emptyOpt = document.createElement('option');
+        emptyOpt.value = '';
+        emptyOpt.text = '-- Sélectionner un événement --';
+        eventSelect.appendChild(emptyOpt);
+        (Array.isArray(data) ? data : []).forEach(ev => {
+          const opt = document.createElement('option');
+          opt.value = ev.id_even;
+          opt.text = ev.title + (ev.event_date ? ' — ' + ev.event_date : '');
+          eventSelect.appendChild(opt);
+
+          const inviteOpt = document.createElement('option');
+          inviteOpt.value = ev.id_even;
+          inviteOpt.text = ev.title + (ev.event_date ? ' — ' + ev.event_date : '');
+          inviteEventSelect.appendChild(inviteOpt);
+        });      } catch (err) {
+        console.error('Erreur chargement événements', err);
+      }
+    }
+
+    function updateStats(data) {
+      guestCount.innerText = data.length;
+      presentCount.innerText = data.filter(invite => invite.statut === 'present').length;
+      absentCount.innerText = data.filter(invite => invite.statut !== 'present').length;
+    }
+
+    function renderGuests(data) {
+      guestList.innerHTML = '';
+      data.forEach(invite => {
+        const row = document.createElement('tr');
+        row.className = 'border-b border-purple-700 flex flex-col md:table-row';
+        const actions = invite.statut === 'present' ?
+          `<td class="p-4 text-center text-white">Présent</td>` :
+          `<td class="p-4 flex gap-3 justify-center md:justify-end">
+            <button data-id="${invite.id_invite}" data-statut="present" class="statusBtn bg-green-500 hover:bg-green-600 text-sm px-4 py-2 rounded font-medium transition">Présent</button>
+            <button data-id="${invite.id_invite}" data-statut="absent" class="statusBtn bg-yellow-500 hover:bg-yellow-600 text-sm px-4 py-2 rounded font-medium transition">Absent</button>
+          </td>`;
+
+        row.innerHTML = `
+          <td class="p-4 text-white text-xl font-semibold">${invite.nom}</td>
+          <td class="p-4 text-center text-white">${invite.email || '-'} </td>
+          <td class="p-4 text-center text-white">${invite.telephone || '-'} </td>
+          <td class="p-4 text-center text-white">${invite.statut || 'absent'}</td>
+          ${actions}
+        `;
+        guestList.appendChild(row);
+      });
+      bindStatusButtons();
+    }
+
+    function bindStatusButtons() {
+      document.querySelectorAll('.statusBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const statut = btn.dataset.statut;
+          try {
+            const response = await fetch(`${baseUrl}/mark_presentController.php`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: `id_invite=${id}&statut=${statut}`
+            });
+            const data = await response.json();
+            if (statut === 'present' && data.notify && data.notify.whatsapp_url) {
+              window.open(data.notify.whatsapp_url, '_blank');
+            }
+            loadGuests();
+          } catch (error) {
+            console.error('Erreur lors de la mise à jour du statut :', error);
+          }
+        });
+      });
+    }
+
+    openInviteModal.addEventListener('click', () => {
+      inviteModal.classList.remove('hidden');
+    });
+
+    cancelInviteModal.addEventListener('click', (e) => {
+      e.preventDefault();
+      inviteModal.classList.add('hidden');
+    });
+
+    submitInviteBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const nom = inviteName.value.trim();
+      const telephone = inviteTelephone.value.trim();
+      const eventId = inviteEventSelect.value;
+      if (!nom || !telephone || !eventId) {
+        inviteMessage.innerText = 'Le nom, le téléphone et l\'événement sont requis.';
+        inviteMessage.className = 'text-sm mt-4 text-red-500';
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${baseUrl}/create_inviteController.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `nom=${encodeURIComponent(nom)}&telephone=${encodeURIComponent(telephone)}&event_id=${encodeURIComponent(eventId)}`
+        });
+        const data = await resp.json();
+        if (data.status === 'success') {
+          inviteMessage.innerText = 'Invité ajouté avec succès.';
+          inviteMessage.className = 'text-sm mt-4 text-green-500';
+          inviteName.value = '';
+          inviteTelephone.value = '';
+          inviteEventSelect.value = '';
+          setTimeout(() => {
+            inviteModal.classList.add('hidden');
+            inviteMessage.innerText = '';
+            loadGuests();
+          }, 1000);
+        } else {
+          inviteMessage.innerText = data.message || 'Erreur lors de l\'ajout de l\'invité.';
+          inviteMessage.className = 'text-sm mt-4 text-red-500';
+        }
+      } catch (err) {
+        inviteMessage.innerText = 'Erreur réseau lors de l\'ajout de l\'invité.';
+        inviteMessage.className = 'text-sm mt-4 text-red-500';
+        console.error(err);
+      }
+    });
+
+    function filterGuests() {
+      const query = searchInput.value.toLowerCase();
+      const filtered = guests.filter(invite => invite.nom.toLowerCase().includes(query));
+      renderGuests(filtered);
+      updateStats(filtered);
+    }
+
+    exportCsv.addEventListener('click', () => {
+      const rows = [
+        ['ID', 'Nom', 'Email', 'Téléphone', 'Statut'],
+        ...guests.map(invite => [invite.id_invite, invite.nom, invite.email || '', invite.telephone || '', invite.statut || 'absent'])
+      ];
+      const csv = rows.map(row => row.map(value => `"${value}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'invites.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    refreshList.addEventListener('click', loadGuests);
+    searchInput.addEventListener('input', filterGuests);
+    loadEvents().then(() => loadGuests());
+
+    // event selection
+    eventSelect.addEventListener('change', () => {
+      const val = eventSelect.value;
+      loadGuests(val || null);
+    });
+
+    // create event UI
+    openCreateEvent.addEventListener('click', () => createEventModal.classList.remove('hidden'));
+    cancelCreateEvent.addEventListener('click', (e) => { e.preventDefault(); createEventModal.classList.add('hidden'); });
+    createEventBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const title = eventTitle.value.trim();
+      const date = eventDate.value;
+      const location = eventLocation.value.trim();
+      const description = eventDescription.value.trim();
+      if (!title) return alert('Titre requis');
+      if (!date) return alert('Date de l\'événement requise');
+      if (!location) return alert('Lieu requis');
+      try {
+        const resp = await fetch(`${baseUrl}/create_eventController.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `title=${encodeURIComponent(title)}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(location)}&description=${encodeURIComponent(description)}`
+        });
+        const data = await resp.json();
+        if (data.status === 'success') {
+          eventTitle.value = '';
+          eventDate.value = '';
+          eventLocation.value = '';
+          eventDescription.value = '';
+          createEventModal.classList.add('hidden');
+          await loadEvents();
+          alert('Événement créé');
+        } else {
+          alert('Erreur création événement');
+        }
+      } catch (err) { console.error(err); alert('Erreur réseau'); }
+    });
+  </script>
+</body>
+</html>

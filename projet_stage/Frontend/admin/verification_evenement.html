@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vérification des présences</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-purple-900 text-white min-h-screen p-4 font-sans">
+  <header class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/checklist.png" class="w-8 h-8" alt="logo" />
+      <div>
+        <h1 class="text-2xl font-bold">Vérification des présences</h1>
+        <p class="text-gray-300">Sélectionnez un événement pour voir l'état des invités.</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="dashboardOrganisateur.html" class="bg-green-500 hover:bg-green-600 px-5 py-2 rounded text-sm font-semibold">Retour</a>
+    </div>
+  </header>
+
+  <div class="mb-4">
+    <label class="block text-gray-300 mb-2">Événement :</label>
+    <select id="eventSelect" class="w-full p-3 rounded bg-purple-800 text-white"></select>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-purple-800 p-5 rounded-xl shadow-lg">
+      <h2 class="text-sm uppercase text-gray-400 mb-2">Invités</h2>
+      <p id="totalInvites" class="text-4xl font-bold">0</p>
+    </div>
+    <div class="bg-purple-800 p-5 rounded-xl shadow-lg">
+      <h2 class="text-sm uppercase text-gray-400 mb-2">Présents</h2>
+      <p id="presentCount" class="text-4xl font-bold">0</p>
+    </div>
+    <div class="bg-purple-800 p-5 rounded-xl shadow-lg">
+      <h2 class="text-sm uppercase text-gray-400 mb-2">Absents</h2>
+      <p id="absentCount" class="text-4xl font-bold">0</p>
+    </div>
+  </div>
+
+  <div class="bg-purple-800 rounded-xl shadow-lg overflow-hidden">
+    <table class="w-full table-auto">
+      <thead class="bg-purple-700 text-left hidden md:table-header-group">
+        <tr>
+          <th class="p-4 text-white text-lg">Nom</th>
+          <th class="p-4 text-center text-white text-lg">Téléphone</th>
+          <th class="p-4 text-center text-white text-lg">Statut</th>
+          <th class="p-4 text-center text-white text-lg">Validé par</th>
+          <th class="p-4 text-center text-white text-lg">Date validation</th>
+          <th class="p-4 text-center text-white text-lg">Action</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceRows"></tbody>
+    </table>
+    <div id="attendanceMessage" class="p-4 text-center text-gray-300">Sélectionnez un événement pour afficher les invités.</div>
+  </div>
+
+  <script>
+    const eventSelect = document.getElementById('eventSelect');
+    const totalInvites = document.getElementById('totalInvites');
+    const presentCount = document.getElementById('presentCount');
+    const absentCount = document.getElementById('absentCount');
+    const attendanceRows = document.getElementById('attendanceRows');
+
+    async function loadEvents() {
+      try {
+        const resp = await fetch('../../../Backend/controllers/get_eventsController.php');
+        const events = await resp.json();
+        eventSelect.innerHTML = '<option value="">-- Sélectionner un événement --</option>';
+        (Array.isArray(events) ? events : []).forEach(ev => {
+          const opt = document.createElement('option');
+          opt.value = ev.id_even;
+          opt.text = ev.title + (ev.event_date ? ' — ' + ev.event_date : '');
+          eventSelect.appendChild(opt);
+        });
+      } catch (error) {
+        console.error('Erreur chargement événements', error);
+      }
+    }
+
+    async function loadAttendance(eventId) {
+      try {
+        const attendanceMessage = document.getElementById('attendanceMessage');
+        if (!eventId) {
+          attendanceRows.innerHTML = '';
+          attendanceMessage.innerText = 'Sélectionnez un événement pour afficher les invités.';
+          attendanceMessage.classList.remove('hidden');
+          totalInvites.innerText = '0';
+          presentCount.innerText = '0';
+          absentCount.innerText = '0';
+          return;
+        }
+
+        attendanceMessage.classList.add('hidden');
+        const resp = await fetch(`../../../Backend/controllers/get_event_attendanceController.php?event_id=${eventId}`);
+        const data = await resp.json();
+        attendanceRows.innerHTML = '';
+
+        let total = 0; let present = 0; let absent = 0;
+        (Array.isArray(data) ? data : []).forEach(invite => {
+          total += 1;
+          if (invite.statut === 'present') present += 1;
+          else absent += 1;
+          const row = document.createElement('tr');
+          row.className = 'border-b border-purple-700 flex flex-col md:table-row';
+          const actionButton = invite.statut === 'present' && invite.est_present == 0 ?
+            `<button data-id="${invite.id_invite}" class="confirmBtn bg-green-500 hover:bg-green-600 text-sm px-4 py-2 rounded font-medium">Valider</button>` :
+            '<span class="text-gray-300">Déjà validé</span>';
+
+          row.innerHTML = `
+            <td class="p-4 text-white text-xl font-semibold">${invite.nom}</td>
+            <td class="p-4 text-center text-white">${invite.telephone || '-'}</td>
+            <td class="p-4 text-center text-white">${invite.statut === 'present' ? 'Présent' : 'Absent'}</td>
+            <td class="p-4 text-center text-white">${invite.enregistrer_par || '-'}</td>
+            <td class="p-4 text-center text-white">${invite.date_validation || '-'}</td>
+            <td class="p-4 flex justify-center md:justify-end">${actionButton}</td>
+          `;
+          attendanceRows.appendChild(row);
+        });
+        bindConfirmButtons();
+
+        totalInvites.innerText = total;
+        presentCount.innerText = present;
+        absentCount.innerText = absent;
+      } catch (error) {
+        console.error('Erreur chargement présence', error);
+      }
+    }
+
+    function bindConfirmButtons() {
+      document.querySelectorAll('.confirmBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const inviteId = btn.dataset.id;
+          try {
+            const resp = await fetch(`../../../Backend/controllers/mark_presentController.php`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: `id_invite=${encodeURIComponent(inviteId)}&statut=present&validate=1`
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+              if (data.notify && data.notify.whatsapp_url) {
+                window.open(data.notify.whatsapp_url, '_blank');
+              }
+              await loadAttendance(eventSelect.value);
+            } else {
+              alert(data.message || 'Impossible de valider la présence.');
+            }
+          } catch (error) {
+            console.error('Erreur validation présence', error);
+            alert('Erreur lors de la validation de la présence.');
+          }
+        });
+      });
+    }
+
+    eventSelect.addEventListener('change', () => loadAttendance(eventSelect.value));
+    loadEvents();
+  </script>
+</body>
+</html>
