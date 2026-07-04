@@ -8,7 +8,8 @@ if (file_exists($notificationConfigPath)) {
     require_once $notificationConfigPath;
 }
 
-if (!isset($_SESSION['user_id'], $_SESSION['nom'], $_SESSION['role']) || !in_array($_SESSION['role'], ['hotesse', 'admin'], true)) {
+// Only admin allowed for dashboard marking
+if (!isset($_SESSION['user_id'], $_SESSION['nom'], $_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     http_response_code(403);
     echo json_encode(['status' => 'error', 'message' => 'Accès refusé.']);
     exit;
@@ -30,9 +31,11 @@ if (!in_array($statut, $allowed, true)) {
 }
 
 try {
+    // Update invite status
     $stmt = $conn->prepare("UPDATE invites SET statut = ? WHERE id_invite = ?");
     $stmt->execute([$statut, $id_invite]);
 
+    // Find latest liste_invites entry for this invite
     $listStmt = $conn->prepare("SELECT id_liste_invite, id_even FROM liste_invites WHERE id_invite = ? ORDER BY id_liste_invite DESC LIMIT 1");
     $listStmt->execute([$id_invite]);
     $list = $listStmt->fetch(PDO::FETCH_ASSOC);
@@ -48,6 +51,7 @@ try {
         ]);
     }
 
+    // Load invite and event info
     $inviteStmt = $conn->prepare("SELECT nom, email, telephone FROM invites WHERE id_invite = ? LIMIT 1");
     $inviteStmt->execute([$id_invite]);
     $invite = $inviteStmt->fetch(PDO::FETCH_ASSOC);
@@ -68,10 +72,10 @@ try {
         $phone = preg_replace('/[^0-9+]/', '', trim($invite['telephone'] ?? ''));
         $name = trim($invite['nom'] ?? '');
 
-$template = $GLOBALS['WHATSAPP_TEMPLATE'] ?? "Bonjour {nom},\n\nVotre présence à l'événement \"{event_title}\" est confirmée.\nDate: {event_date}\nLieu: {event_location}\n\nMerci de votre participation.\n\nPour tout problème lié à l'application Asso+, veuillez nous contacter au {support_phone}.";
-    $body = str_replace(
-        ['{nom}', '{event_title}', '{event_date}', '{event_location}', '{support_phone}'],
-        [$name, $eventTitle, $eventDate, $eventLocation, $GLOBALS['WHATSAPP_SUPPORT_NUMBER'] ?? '+237 654143860'],
+        $template = $GLOBALS['WHATSAPP_TEMPLATE'] ?? "Bonjour {nom},\n\nVotre présence à l'événement \"{event_title}\" est confirmée.\nDate: {event_date}\nLieu: {event_location}\n\nMerci de votre participation.\n\nPour tout problème lié à l'application Asso+, veuillez nous contacter au {support_phone}.";
+        $body = str_replace(
+            ['{nom}', '{event_title}', '{event_date}', '{event_location}', '{support_phone}'],
+            [$name, $eventTitle, $eventDate, $eventLocation, $GLOBALS['WHATSAPP_SUPPORT_NUMBER'] ?? '+237 654143860'],
             $template
         );
 
@@ -110,3 +114,4 @@ $template = $GLOBALS['WHATSAPP_TEMPLATE'] ?? "Bonjour {nom},\n\nVotre présence 
     http_response_code(500);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
+

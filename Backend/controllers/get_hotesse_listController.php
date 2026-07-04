@@ -10,6 +10,11 @@ if (!isset($_SESSION['user_id'], $_SESSION['role']) || $_SESSION['role'] !== 'ad
 }
 
 try {
+    $column = $conn->query("SHOW COLUMNS FROM liste_invites LIKE 'id_utilisateur'")->fetch(PDO::FETCH_ASSOC);
+    if (!$column) {
+        $conn->exec("ALTER TABLE liste_invites ADD COLUMN id_utilisateur BIGINT NULL AFTER id_liste_invite");
+    }
+
     $stmt = $conn->prepare("SELECT u.id_utilisateur, u.nom, u.email,
         COUNT(li.id_liste_invite) AS total_invites,
         SUM(CASE WHEN li.est_present = 1 THEN 1 ELSE 0 END) AS total_present

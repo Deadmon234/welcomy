@@ -5,9 +5,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nom = $_POST['nom'] ?? '';
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
-    $role = strtolower($_POST['role'] ?? '');
+    $role = 'hotesse';
 
-    if (empty($nom) || empty($email) || empty($password) || empty($role)) {
+    if (empty($nom) || empty($email) || empty($password)) {
         die("Tous les champs sont requis.");
     }
 

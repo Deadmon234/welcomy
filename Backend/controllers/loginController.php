@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $_SESSION['role'] = strtolower($user['role']);
 
             if (strtolower($user['role']) === 'admin') {
-                header("Location: ../../projet_stage/Frontend/admin/dashboardOrganisateur.html");
+                header("Location: ../../projet_stage/Frontend/admin/dashboardOrganisateur.php");
                 exit;
             } elseif (strtolower($user['role']) === 'hotesse') {
                 header("Location: ../../projet_stage/Frontend/hotesse/dashboardHotesse.php");

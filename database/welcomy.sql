@@ -21,11 +21,6 @@ CREATE TABLE IF NOT EXISTS `invites` (
   PRIMARY KEY (`id_invite`)
 ) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `invites` (`id_invite`, `email`, `nom`, `telephone`, `statut`) VALUES
-(1, 'sylvestrechristianfotsowomgne@gmail.com', 'fogue arthur', '+237 652236142', 'present'),
-(2, 'sylvestre@gmail.com', 'veronne copin', '237 652236143', 'present'),
-(3, 'sfotsowomgne@gmail.com', 'Sylvestre Christian FOTSO', '+237 652236142', 'absent');
-
 DROP TABLE IF EXISTS `liste_invites`;
 CREATE TABLE IF NOT EXISTS `liste_invites` (
   `id_liste_invite` bigint NOT NULL AUTO_INCREMENT,
@@ -48,10 +43,14 @@ CREATE TABLE IF NOT EXISTS `presence_verifications` (
   `id_even` bigint NOT NULL,
   `statut` enum('pending','validated','failed') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pending',
   `type` enum('whatsapp','sms','email') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'whatsapp',
-  `contenu` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `contenu` text COLLATE utf8mb4_general_ci DEFAULT NULL,
   `envoyer_par` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
   `date_envoi` datetime NOT NULL,
   `etat` enum('en attente','envoye','erreur') COLLATE utf8mb4_general_ci DEFAULT 'en attente',
+  `remerciement_envoye` tinyint(1) NOT NULL DEFAULT '0' COMMENT '0 = remerciement non envoyé, 1 = remerciement envoyé',
+  `remerciement_par` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `contenu_remerciement` text COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `date_remerciement` datetime DEFAULT NULL,
   PRIMARY KEY (`id_verification`),
   KEY `id_liste_invite` (`id_liste_invite`),
   KEY `id_invite` (`id_invite`),
@@ -70,7 +69,5 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `users` (`id_utilisateur`, `nom`, `email`, `password`, `role`, `created_at`) VALUES
-(1, 'bobo eliore', 'boboeliore@gmail.com', '$2y$10$.2dmX8.X6nqEOdpULadM4.HDunNCrxesGFeKeYVzaUB406bbbrEui', 'hotesse', '2025-04-17 14:20:50');
 COMMIT;
 

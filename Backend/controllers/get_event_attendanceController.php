@@ -13,12 +13,20 @@ $event_id = isset($_GET['event_id']) ? (int)$_GET['event_id'] : null;
 
 try {
     if ($event_id) {
-        $stmt = $conn->prepare("SELECT i.id_invite, i.nom, i.email, i.telephone, i.statut, li.est_present, li.enregistrer_par, li.date_validation,
-            e.nom AS event_title, e.date_ AS event_date, e.lieu AS event_location
+        $stmt = $conn->prepare("SELECT i.id_invite, i.nom, i.email, i.telephone, i.statut,
+            li.id_liste_invite, li.est_present, li.enregistrer_par, li.date_validation,
+            e.nom AS event_title, e.date_ AS event_date, e.lieu AS event_location,
+            COALESCE(pv.remerciement_envoye, 0) AS remerciement_envoye,
+            pv.remerciement_par, pv.date_remerciement
             FROM liste_invites li
             JOIN invites i ON i.id_invite = li.id_invite
             LEFT JOIN evenements e ON e.id_even = li.id_even
-            WHERE li.id_even = ? AND i.statut = 'present'
+            LEFT JOIN presence_verifications pv ON pv.id_verification = (
+                SELECT MAX(pv2.id_verification)
+                FROM presence_verifications pv2
+                WHERE pv2.id_liste_invite = li.id_liste_invite
+            )
+            WHERE li.id_even = ?
             ORDER BY li.date_validation DESC");
         $stmt->execute([$event_id]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
