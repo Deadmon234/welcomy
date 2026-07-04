@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__ . '/../../Backend/config/auth.php';
+welcomy_redirect_if_logged_in();
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>

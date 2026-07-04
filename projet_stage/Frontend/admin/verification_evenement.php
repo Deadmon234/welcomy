@@ -1,6 +1,6 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id'], $_SESSION['nom'], $_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+require_once __DIR__ . '/../../../Backend/config/auth.php';
+if (!isset($_SESSION['user_id'], $_SESSION['role']) || welcomy_current_role() !== 'admin') {
     header('Location: ../login.php');
     exit;
 }

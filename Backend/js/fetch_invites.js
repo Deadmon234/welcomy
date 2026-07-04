@@ -38,11 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const popup = window.open('', '_blank');
         try {
-          const response = await fetch(`${baseUrl}/mark_present_hotesseController.php`, {
+          const response = await fetch(`${baseUrl}/mark_presentController.php`, {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `id_invite=${btn.dataset.id}&statut=present&validate=1`
+            body: `id_invite=${btn.dataset.id}&statut=present&validate=1&event_id=${eventSelect.value || ''}`
           });
           const data = await response.json();
           if (data.notify && data.notify.whatsapp_url) {

@@ -1,13 +1,9 @@
 <?php
-session_start();
+require_once '../config/auth.php';
 header('Content-Type: application/json');
 require_once '../config/db.php';
 
-if (!isset($_SESSION['user_id'], $_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'hotesse'], true)) {
-    http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Accès refusé.']);
-    exit;
-}
+welcomy_require_auth(['admin', 'hotesse'], $conn);
 
 try {
     $stmt = $conn->query("SELECT e.id_even, e.nom AS title, e.date_ AS event_date, e.lieu AS location, e.description,

@@ -1,37 +1,36 @@
 <?php
-require_once '../config/db.php'; // Connexion à la base avec PDO
+require_once '../config/auth.php';
+require_once '../config/db.php';
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $nom = $_POST['nom'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $role = 'hotesse';
+welcomy_redirect_if_logged_in();
 
-    if (empty($nom) || empty($email) || empty($password)) {
-        die("Tous les champs sont requis.");
-    }
-
-    // Vérifier si l'email est déjà utilisé
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    if ($stmt->fetch()) {
-        die("Cet email est déjà utilisé.");
-    }
-
-    // Hachage du mot de passe
-    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-
-    // Insertion dans la table users
-    $stmt = $conn->prepare("INSERT INTO users (nom, email, password, role) VALUES (?, ?, ?, ?)");
-    $result = $stmt->execute([$nom, $email, $hashedPassword, $role]);
-
-    if ($result) {
-        // Rediriger vers la page de login après inscription réussie
-        header("Location: ../../projet_stage/Frontend/login.php");
-        exit();
-    } else {
-        echo "Erreur lors de l'enregistrement.";
-    }
-} else {
-    echo "Méthode non autorisée.";
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../../projet_stage/Frontend/register.php');
+    exit;
 }
+
+$nom = trim($_POST['nom'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
+$role = 'hotesse';
+
+if ($nom === '' || $email === '' || $password === '') {
+    die('Tous les champs sont requis.');
+}
+
+$stmt = $conn->prepare('SELECT id_utilisateur FROM users WHERE email = ?');
+$stmt->execute([$email]);
+if ($stmt->fetch()) {
+    die('Cet email est déjà utilisé.');
+}
+
+$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+$stmt = $conn->prepare('INSERT INTO users (nom, email, password, role) VALUES (?, ?, ?, ?)');
+$result = $stmt->execute([$nom, $email, $hashedPassword, $role]);
+
+if ($result) {
+    header('Location: ../../projet_stage/Frontend/login.php?registered=1');
+    exit;
+}
+
+echo 'Erreur lors de l\'enregistrement.';

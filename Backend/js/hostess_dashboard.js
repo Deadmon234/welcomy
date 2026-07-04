@@ -219,11 +219,11 @@ document.addEventListener('DOMContentLoaded', () => {
     whatsappConfirmBtn.textContent = 'Traitement…';
 
     try {
-      const response = await fetch(`${baseUrl}/mark_present_hotesseController.php`, {
+      const response = await fetch(`${baseUrl}/mark_presentController.php`, {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `id_invite=${pendingGuest.id_invite}&statut=present&validate=1`
+        body: `id_invite=${pendingGuest.id_invite}&statut=present&validate=1&event_id=${eventSelect.value || ''}`
       });
       const data = await response.json();
 
@@ -364,6 +364,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   inviteForm.addEventListener('submit', async e => {
     e.preventDefault();
+    const phoneField = inviteForm.querySelector('[data-phone-field]');
+    const phoneCheck = phoneField?.validate?.();
+    if (!phoneCheck || !phoneCheck.ok) {
+      inviteMessage.innerHTML = `<span class="text-red-400">${phoneCheck?.error || 'Numéro de téléphone invalide.'}</span>`;
+      return;
+    }
     const formData = new FormData(inviteForm);
     inviteMessage.textContent = '';
 
@@ -378,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
         inviteMessage.innerHTML = '<span class="text-emerald-400">Invité ajouté avec succès.</span>';
         inviteForm.reset();
         if (eventSelect.value) eventSelectForm.value = eventSelect.value;
+        inviteForm.querySelector('[data-phone-field]')?.validate?.();
         setTimeout(async () => {
           inviteModal.classList.add('hidden');
           document.body.classList.remove('overflow-hidden');
@@ -394,4 +401,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   loadEvents();
+
+  if (window.WELCOMY_PHONE) {
+    WELCOMY_PHONE.initAll('#inviteForm [data-phone-field]');
+  }
 });

@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cancelInviteModal = document.getElementById('cancelInviteModal');
   const submitInviteBtn = document.getElementById('submitInviteBtn');
   const inviteName = document.getElementById('inviteName');
-  const inviteTelephone = document.getElementById('inviteTelephone');
+  const invitePhoneField = document.getElementById('invitePhoneField');
   const inviteEventSelect = document.getElementById('inviteEventSelect');
   const inviteMessage = document.getElementById('inviteMessage');
 
@@ -201,8 +201,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function markStatus(guest, statut, validate = false) {
     try {
-      const body = `id_invite=${guest.id_invite}&statut=${statut}${validate ? '&validate=1' : ''}`;
-      const response = await fetch(`${baseUrl}/mark_presence_dashboardController.php`, {
+      const eventId = eventSelect.value || '';
+      const body = `id_invite=${guest.id_invite}&statut=${statut}${eventId ? `&event_id=${eventId}` : ''}${validate ? '&validate=1' : ''}`;
+      const response = await fetch(`${baseUrl}/mark_presentController.php`, {
         method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body
@@ -326,24 +327,30 @@ document.addEventListener('DOMContentLoaded', () => {
   submitInviteBtn.addEventListener('click', async e => {
     e.preventDefault();
     const nom = inviteName.value.trim();
-    const telephone = inviteTelephone.value.trim();
     const eventId = inviteEventSelect.value;
-    if (!nom || !telephone || !eventId) {
-      inviteMessage.innerHTML = '<span class="text-red-400">Nom, téléphone et événement requis.</span>';
+    const phoneCheck = invitePhoneField?.validate?.();
+    if (!nom || !eventId) {
+      inviteMessage.innerHTML = '<span class="text-red-400">Nom et événement requis.</span>';
       return;
     }
+    if (!phoneCheck || !phoneCheck.ok) {
+      inviteMessage.innerHTML = `<span class="text-red-400">${phoneCheck?.error || 'Numéro de téléphone invalide.'}</span>`;
+      return;
+    }
+    const telephone = phoneCheck.phone;
     submitInviteBtn.disabled = true;
     try {
       const resp = await fetch(`${baseUrl}/create_inviteController.php`, {
         method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `nom=${encodeURIComponent(nom)}&telephone=${encodeURIComponent(telephone)}&event_id=${encodeURIComponent(eventId)}`
+        body: `nom=${encodeURIComponent(nom)}&telephone=${encodeURIComponent(telephone)}&country_dial=${encodeURIComponent(phoneCheck.country.dial)}&event_id=${encodeURIComponent(eventId)}`
       });
       const data = await resp.json();
       if (data.status === 'success') {
         inviteMessage.innerHTML = '<span class="text-emerald-400">Invité ajouté avec succès.</span>';
         inviteName.value = '';
-        inviteTelephone.value = '';
+        invitePhoneField.querySelector('[data-phone-number]').value = '';
+        invitePhoneField.validate?.();
         setTimeout(async () => {
           inviteModal.classList.add('hidden');
           document.body.classList.remove('overflow-hidden');
@@ -438,4 +445,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   loadEvents();
+
+  if (window.WELCOMY_PHONE && invitePhoneField) {
+    WELCOMY_PHONE.initField(invitePhoneField);
+  }
 });

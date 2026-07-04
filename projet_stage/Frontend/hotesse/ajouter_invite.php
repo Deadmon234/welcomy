@@ -46,10 +46,16 @@ $hostessName = htmlspecialchars($_SESSION['nom'], ENT_QUOTES, 'UTF-8');
             <input type="text" name="nom" required placeholder="Ex. Jean Dupont"
               class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
           </div>
-          <div>
+          <div data-phone-field data-default-country="+237">
             <label class="block text-xs font-medium text-slate-400 mb-1.5">Téléphone (WhatsApp) *</label>
-            <input type="tel" name="telephone" required placeholder="Ex. +237 6XX XXX XXX"
-              class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+            <div class="flex gap-2">
+              <select data-phone-country class="w-[11.5rem] shrink-0 bg-slate-800 border border-slate-700 rounded-xl px-2 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500"></select>
+              <input data-phone-number type="tel" inputmode="tel" required autocomplete="tel-national" placeholder="6XX XXX XXX"
+                class="flex-1 min-w-0 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+            </div>
+            <input type="hidden" name="telephone" data-phone-full />
+            <input type="hidden" name="country_dial" data-phone-dial-sync />
+            <p data-phone-hint class="text-xs text-slate-500 mt-1.5"></p>
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1.5">Email (optionnel)</label>
@@ -74,6 +80,7 @@ $hostessName = htmlspecialchars($_SESSION['nom'], ENT_QUOTES, 'UTF-8');
 
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm"></div>
 
+  <script src="/welcomy/Backend/js/phone_utils.js"></script>
   <script>
     const baseUrl = '/welcomy/Backend/controllers';
 
@@ -93,6 +100,8 @@ $hostessName = htmlspecialchars($_SESSION['nom'], ENT_QUOTES, 'UTF-8');
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
+      WELCOMY_PHONE.initAll('[data-phone-field]');
+      const phoneField = document.querySelector('[data-phone-field]');
       const sel = document.getElementById('eventSelectForm');
       try {
         const resp = await fetch(`${baseUrl}/get_eventsController.php`, { credentials: 'same-origin' });
@@ -109,6 +118,11 @@ $hostessName = htmlspecialchars($_SESSION['nom'], ENT_QUOTES, 'UTF-8');
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         const msg = document.getElementById('message');
+        const phoneCheck = phoneField?.validate?.();
+        if (!phoneCheck || !phoneCheck.ok) {
+          msg.innerHTML = `<span class="text-red-400">${phoneCheck?.error || 'Numéro de téléphone invalide.'}</span>`;
+          return;
+        }
         btn.disabled = true;
         msg.textContent = '';
         try {

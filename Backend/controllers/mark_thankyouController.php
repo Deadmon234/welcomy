@@ -1,18 +1,14 @@
 <?php
-session_start();
+require_once __DIR__ . '/../config/auth.php';
 header('Content-Type: application/json');
-require_once '../config/db.php';
+require_once __DIR__ . '/../config/db.php';
 
 $notificationConfigPath = __DIR__ . '/../config/notification_config.php';
 if (file_exists($notificationConfigPath)) {
     require_once $notificationConfigPath;
 }
 
-if (!isset($_SESSION['user_id'], $_SESSION['nom'], $_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Accès refusé.']);
-    exit;
-}
+welcomy_require_auth(['admin'], $conn);
 
 $id_invite = $_POST['id_invite'] ?? null;
 $event_id = isset($_POST['event_id']) ? (int)$_POST['event_id'] : null;
@@ -83,7 +79,7 @@ try {
         $template
     );
 
-    $sender = $_SESSION['nom'];
+    $sender = welcomy_current_name($conn);
     $notify = [];
 
     if ($verification) {

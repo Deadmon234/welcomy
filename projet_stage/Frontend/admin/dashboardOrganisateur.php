@@ -1,6 +1,6 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id'], $_SESSION['nom'], $_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+require_once __DIR__ . '/../../../Backend/config/auth.php';
+if (!isset($_SESSION['user_id'], $_SESSION['role']) || welcomy_current_role() !== 'admin') {
     header('Location: ../login.php');
     exit;
 }
@@ -163,7 +163,16 @@ $adminName = htmlspecialchars($_SESSION['nom'], ENT_QUOTES, 'UTF-8');
       </div>
       <div class="p-6 space-y-4">
         <input id="inviteName" placeholder="Nom complet" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500" />
-        <input id="inviteTelephone" placeholder="Téléphone (WhatsApp)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500" />
+        <div id="invitePhoneField" data-phone-field data-default-country="+237">
+          <label class="block text-xs font-medium text-slate-400 mb-1.5">Téléphone (WhatsApp) *</label>
+          <div class="flex gap-2">
+            <select data-phone-country class="w-[11.5rem] shrink-0 bg-slate-800 border border-slate-700 rounded-xl px-2 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500"></select>
+            <input data-phone-number type="tel" inputmode="tel" autocomplete="tel-national" class="flex-1 min-w-0 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500" />
+          </div>
+          <input type="hidden" data-phone-full id="inviteTelephone" />
+          <input type="hidden" data-phone-dial-sync name="country_dial" />
+          <p data-phone-hint class="text-xs text-slate-500 mt-1.5"></p>
+        </div>
         <select id="inviteEventSelect" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500"><option value="">— Choisir un événement —</option></select>
         <div id="inviteMessage" class="text-sm"></div>
         <button id="submitInviteBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition-colors">Enregistrer l'invité</button>
@@ -181,6 +190,7 @@ $adminName = htmlspecialchars($_SESSION['nom'], ENT_QUOTES, 'UTF-8');
       supportPhone: <?= json_encode($WHATSAPP_SUPPORT_NUMBER, JSON_UNESCAPED_UNICODE) ?>
     };
   </script>
+  <script src="/welcomy/Backend/js/phone_utils.js"></script>
   <script src="/welcomy/Backend/js/admin_dashboard.js"></script>
 </body>
 </html>

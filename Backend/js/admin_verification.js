@@ -241,10 +241,10 @@ document.addEventListener('DOMContentLoaded', () => {
     whatsappConfirmBtn.disabled = true;
     whatsappConfirmBtn.textContent = 'Traitement…';
     try {
-      const res = await fetch(`${baseUrl}/mark_presence_validationController.php`, {
+      const res = await fetch(`${baseUrl}/mark_presentController.php`, {
         method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `id_invite=${pendingGuest.id_invite}&statut=present&validate=1`
+        body: `id_invite=${pendingGuest.id_invite}&statut=present&validate=1&event_id=${eventSelect.value || ''}`
       });
       const data = await res.json();
       if (data.status !== 'success') throw new Error(data.message || 'Erreur.');

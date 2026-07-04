@@ -1,14 +1,7 @@
 <?php
-session_start();
-if (isset($_SESSION['user_id'], $_SESSION['role'])) {
-    if ($_SESSION['role'] === 'admin') {
-        header('Location: projet_stage/Frontend/admin/dashboardOrganisateur.php');
-        exit;
-    }
-    if ($_SESSION['role'] === 'hotesse') {
-        header('Location: projet_stage/Frontend/hotesse/dashboardHotesse.php');
-        exit;
-    }
+require_once __DIR__ . '/Backend/config/auth.php';
+if (!empty($_SESSION['user_id'])) {
+    welcomy_redirect_if_logged_in();
 }
 $loginUrl = 'projet_stage/Frontend/login.php';
 $registerUrl = 'projet_stage/Frontend/register.php';
